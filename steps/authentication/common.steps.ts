@@ -1,6 +1,19 @@
-import { Then } from '@cucumber/cucumber';
+import { Then, When } from '@cucumber/cucumber';
 import { expect } from '@playwright/test';
 import { CustomWorld } from '../../support/hooks';
+
+//
+// Login step (reusable)
+//
+When('I login with email {string} and password {string}', async function (this: CustomWorld, email: string, password: string) {
+  await this.page.goto('https://cmsdev.youchoosepetsandlivestock.com/');
+  await this.page.fill('input[name="email"]', email);
+  await this.page.fill('input[name="password"]', password);
+  await this.page.click('button[type="submit"]');
+
+  // Wait for dashboard or any successful login indicator
+  await this.page.waitForURL('**/dashboard', { timeout: 10000 });
+});
 
 //
 // Field validation errors
@@ -14,7 +27,6 @@ Then('I should see {string} error', async function (this: CustomWorld, errorMess
   } else if (errorMessage.includes('Password')) {
     await expect(passwordError).toHaveText(errorMessage, { timeout: 10000 });
   } else if (errorMessage.includes('valid email')) {
-    // Adjust selector if needed for invalid email
     const emailInvalid = this.page.locator('#standard-weight-helper-text-email-login');
     await expect(emailInvalid).toHaveText(errorMessage, { timeout: 10000 });
   } else if (errorMessage.includes('Invalid OTP')) {
